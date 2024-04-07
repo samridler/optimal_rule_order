@@ -6,7 +6,11 @@ function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix):
 
     (m, n) = size(ruleevaltimes)
     ruleevalorder = [1:n;]
-    ruleevaltime = calcruleevaltime(ruleevaltimes, ruleevalpass, ruleevalorder)
+    firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
+
+    # create copies of vectors to be re-used
+    ruleevalordertemp = copy(ruleevalorder)
+    firstrulefailindextemp = copy(firstrulefailindex)
 
     # perform swapping of rules that decreases rule evaluation time
     ruleevaltimedecreased = true
@@ -19,24 +23,26 @@ function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix):
                     continue
                 end
 
+                copy!(ruleevalordertemp, ruleevalorder)
+                copy!(firstrulefailindextemp, firstrulefailindex)
+
                 # swap rule at position k with rule at position l
-                ruleevalorder[k], ruleevalorder[l] = ruleevalorder[l], ruleevalorder[k]
+                ruleevalordertemp[k], ruleevalordertemp[l] = ruleevalordertemp[l], ruleevalordertemp[k]
 
                 # calculate rule evaluation time unless rule eval order has been tried before
-                hashvalue = hash(ruleevalorder)
+                hashvalue = hash(ruleevalordertemp)
                 if hashvalue in ruleevalorderhashes
-                    ruleevaltimenew = Inf
+                    dt = Inf
                 else
-                    ruleevaltimenew = calcruleevaltime(ruleevaltimes, ruleevalpass, ruleevalorder)
+                    dt = calcdeltaruleevaltime_swaprules!(
+                        ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, k, l)
                     push!(ruleevalorderhashes, hashvalue)
                 end
 
-                if ruleevaltimenew < ruleevaltime
-                    ruleevaltime = ruleevaltimenew
+                if dt < 0
+                    copy!(ruleevalorder, ruleevalordertemp)
+                    copy!(firstrulefailindex, firstrulefailindextemp)
                     ruleevaltimedecreased = true
-                else
-                    # swap rules back
-                    ruleevalorder[k], ruleevalorder[l] = ruleevalorder[l], ruleevalorder[k]
                 end
             end
         end
@@ -122,13 +128,13 @@ function insertheuristic2(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatri
     while ruleevaltimedecreased
         ruleevaltimedecreased = false
         for i = 1:n
-            dtremove, ruleevalordertemp, firstrulefailindextemp = calcdeltaruleevaltime_removerule!(
+            dtremove, ruleevalordertemp, firstrulefailindextemp = calcdeltaruleevaltime_removerule(
                 ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindex, i)
             for j = 1:n
                 if i == j
                     continue
                 end
-                dtinsert, ruleevalordernew, firstrulefailindexnew = calcdeltaruleevaltime_insertrule!(
+                dtinsert, ruleevalordernew, firstrulefailindexnew = calcdeltaruleevaltime_insertrule(
                     ruleevaltimes, ruleevalpass, ruleevalordertemp, firstrulefailindextemp, ruleevalorder[j], j)
                 ruleevaltimenew = ruleevaltime + dtremove + dtinsert
                 if ruleevaltimenew < ruleevaltime
@@ -137,7 +143,7 @@ function insertheuristic2(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatri
                     firstrulefailindex = firstrulefailindexnew
                     ruleevaltimedecreased = true
 
-                    dtremove, ruleevalordertemp, firstrulefailindextemp = calcdeltaruleevaltime_removerule!(
+                    dtremove, ruleevalordertemp, firstrulefailindextemp = calcdeltaruleevaltime_removerule(
                         ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindex, i)
                 end
             end

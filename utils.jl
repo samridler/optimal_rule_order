@@ -7,11 +7,11 @@ function calcruleevaltime(
     (m, n) = size(ruleevaltimes)
     time = 0.0
     for i = 1:m
-        # at times until the first rule that fails (if any) for candidate i
-        for j = 1:n
-            k = ruleevalorder[j]
-            time += ruleevaltimes[i, k]
-            if !ruleevalpass[i, k]
+        # add times until the first rule that fails (if any) for candidate i
+        for k = 1:n
+            j = ruleevalorder[k]
+            time += ruleevaltimes[i, j]
+            if !ruleevalpass[i, j]
                 break
             end
         end
@@ -40,7 +40,70 @@ function calcfirstrulefailindex(
     return firstrulefailindex
 end
 
-function calcdeltaruleevaltime_removerule!(
+function calcdeltaruleevaltime_swaprules!(
+    ruleevaltimes::Matrix{Float64},
+    ruleevalpass::BitMatrix,
+    ruleevalorder::Vector{Int64},
+    firstrulefailindex::Vector{Int64},
+    k::Int64,
+    l::Int64
+)::Float64
+    # calculate change in rule evaluation time if rule at index k is swapped with rule at index l
+    # mutates: firstrulefailindex
+
+    k, l = min(k, l), max(k, l)
+
+    dt = 0.0
+
+    if k == l
+        return dt
+    end
+
+    (m, n) = size(ruleevaltimes)
+    for i = 1:m
+        f = firstrulefailindex[i]
+        if k <= f <= l # otherwise swapping k and l would not change rule eval time for candidate i
+            kpass = ruleevalpass[i, ruleevalorder[k]]
+            lpass = ruleevalpass[i, ruleevalorder[l]]
+            if kpass && !lpass
+                # @assert(f > k)
+                # for the rule order, k passed but l failed
+                dt += ruleevaltimes[i, ruleevalorder[l]]
+                for j = k:f
+                    dt -= ruleevaltimes[i, ruleevalorder[j]]
+                end
+                firstrulefailindex[i] = k
+            elseif !kpass && lpass
+                # for the rule order, k failed but l passed
+                # @assert(f == k)
+                # need to find next rule index that fails after swapping k and l
+                f = findfirst(j -> !ruleevalpass[i, ruleevalorder[j]], k+1:l-1)
+                f = firstrulefailindex[i] = isnothing(f) ? l : f + k
+                if f < l # another rule between k and l fails
+                    dt -= ruleevaltimes[i, ruleevalorder[k]]
+                    dt += ruleevaltimes[i, ruleevalorder[l]]
+                end
+                for j = k+1:f
+                    dt += ruleevaltimes[i, ruleevalorder[j]]
+                end
+            else # kpass == lpass
+                # if !kpass && !lpass
+                #     @assert(f == k)
+                # elseif kpass && lpass
+                #     @assert(k < f < l)
+                # end
+                dt -= ruleevaltimes[i, ruleevalorder[k]]
+                dt += ruleevaltimes[i, ruleevalorder[l]]
+                # firstrulefailindex[i] should stay the same
+            end
+        end
+    end
+
+    # calculate change in rule eval time
+    return dt
+end
+
+function calcdeltaruleevaltime_removerule(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix,
     ruleevalorder::Vector{Int64},
@@ -80,7 +143,7 @@ function calcdeltaruleevaltime_removerule!(
     return dt, ruleevalorder, firstrulefailindex
 end
 
-function calcdeltaruleevaltime_insertrule!(
+function calcdeltaruleevaltime_insertrule(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix,
     ruleevalorder::Vector{Int64},
