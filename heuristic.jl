@@ -34,9 +34,13 @@ function ruleofthumb(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::V
     return ruleevalorder
 end
 
-function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
+function swapheuristic(
+    ruleevaltimes::Matrix{Float64},
+    ruleevalpass::BitMatrix;
+    ruleevalorder::Vector{Int64}=[1:n;]
+)::Vector{Int64}
     (m, n) = size(ruleevaltimes)
-    ruleevalorder = [1:n;]
+
     firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
 
     # create copies of vectors to be re-used
@@ -82,9 +86,13 @@ function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix):
     return ruleevalorder
 end
 
-function insertheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
+function insertheuristic(
+    ruleevaltimes::Matrix{Float64},
+    ruleevalpass::BitMatrix;
+    ruleevalorder::Vector{Int64}=[1:n;]
+)::Vector{Int64}
     (m, n) = size(ruleevaltimes)
-    ruleevalorder = [1:n;]
+
     firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
 
     # create copies of vectors to be re-used
