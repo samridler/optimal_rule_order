@@ -1,5 +1,39 @@
 include("utils.jl")
 
+function ruleofthumb(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
+    # find rule with highest ratio of fail rate to evaluation time, this rule should be evaluated first
+    # then remove candidates that fail that rule and repeat
+
+    (m, n) = size(ruleevaltimes)
+    ruleevalorder = []
+
+    ruleevalfails = map(!, ruleevalpass)
+
+    rows = ones(Bool, m)
+    cols = ones(Bool, n)
+
+    # find rule with highest ratio of fail rate to evaluation time
+    for iter = 1:m
+        ruleevalfail = sum(view(ruleevalfails, rows, cols), dims=1)
+        ruleevaltime = sum(view(ruleevaltimes, rows, cols), dims=1)
+        _, k = findmax(i -> ruleevalfail[i] / ruleevaltime[i], 1:m-iter+1)
+        # k is the index in the view of the remaining rules, need to get back the original rule index
+        j = view(1:n, cols)[k]
+        push!(ruleevalorder, j)
+        # remove the rule from consideration, and remove remaining candidates that fail that rule
+        cols[j] = false
+        for (i, row) in enumerate(rows)
+            if row && ruleevalfails[i, j]
+                rows[i] = false
+            end
+        end
+    end
+
+    @assert(sort(ruleevalorder) == 1:n)
+
+    return ruleevalorder
+end
+
 function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
     (m, n) = size(ruleevaltimes)
     ruleevalorder = [1:n;]

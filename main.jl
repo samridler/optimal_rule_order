@@ -24,10 +24,11 @@ ruleevalpass = rand(m, n) .<= 0.9
 # - swap heuristic
 # - insert heuristic
 # - integer programming
-@enum SolutionMethod swap insert ip
+@enum SolutionMethod thumb swap insert ip
 
 ruleevalorders = Dict{SolutionMethod,Vector{Int64}}()
 
+@time ruleevalorders[thumb] = ruleofthumb(ruleevaltimes, ruleevalpass)
 @time ruleevalorders[swap] = swapheuristic(ruleevaltimes, ruleevalpass)
 @time ruleevalorders[insert] = insertheuristic(ruleevaltimes, ruleevalpass)
 # @time ruleevalorders[insert] = insertheuristic2(ruleevaltimes, ruleevalpass)
