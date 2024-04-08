@@ -20,6 +20,23 @@ function calcruleevaltime(
     return time
 end
 
+function reinsert!(vector::Vector{T}, k::Int64, l::Int64) where {T<:Any}
+    # move items in vector in place so that item in index k is moved to index l, shifting other items as needed
+    if k == l
+        return
+    end
+
+    v = vector[k]
+    if k < l
+        # shift items left by 1
+        vector[k:l-1] = vector[k+1:l]
+    else # k > l
+        # shift items right by 1
+        vector[l+1:k] = vector[l:k-1]
+    end
+    vector[l] = v
+end
+
 function calcfirstrulefailindex(
     ruleevalpass::BitMatrix,
     ruleevalorder::Vector{Int64}

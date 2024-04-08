@@ -29,12 +29,12 @@ function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix):
                 # calculate rule evaluation time unless rule eval order has been tried before
                 hashvalue = hash(ruleevalordertemp)
                 if hashvalue in ruleevalorderhashes
-                    dt = Inf
-                else
-                    dt = calcdeltaruleevaltime_swaprules!(
-                        ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, k, l)
-                    push!(ruleevalorderhashes, hashvalue)
+                    continue
                 end
+
+                dt = calcdeltaruleevaltime_swaprules!(
+                    ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, k, l)
+                push!(ruleevalorderhashes, hashvalue)
 
                 if dt < 0
                     copy!(ruleevalorder, ruleevalordertemp)
@@ -76,12 +76,12 @@ function insertheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix
                 # calculate rule evaluation time unless rule eval order has been tried before
                 hashvalue = hash(ruleevalordertemp)
                 if hashvalue in ruleevalorderhashes
-                    dt = Inf
-                else
-                    dt = calcdeltaruleevaltime_reinsertrule!(
-                        ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, k, l)
-                    push!(ruleevalorderhashes, hashvalue)
+                    continue
                 end
+
+                dt = calcdeltaruleevaltime_reinsertrule!(
+                    ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, k, l)
+                push!(ruleevalorderhashes, hashvalue)
 
                 if dt < 0
                     copy!(ruleevalorder, ruleevalordertemp)
@@ -93,23 +93,6 @@ function insertheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix
     end
 
     return ruleevalorder
-end
-
-function reinsert!(vector::Vector{T}, k::Int64, l::Int64) where {T<:Any}
-    # move items in vector in place so that item in index k is moved to index l, shifting other items as needed
-    if k == l
-        return
-    end
-
-    v = vector[k]
-    if k < l
-        # shift items left by 1
-        vector[k:l-1] = vector[k+1:l]
-    else # k > l
-        # shift items right by 1
-        vector[l+1:k] = vector[l:k-1]
-    end
-    vector[l] = v
 end
 
 function insertheuristic2(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
