@@ -40,10 +40,7 @@ function swapheuristic(
     ruleevalorder::Vector{Int64}=[]
 )::Vector{Int64}
     (m, n) = size(ruleevaltimes)
-    if isempty(ruleevalorder)
-        ruleevalorder = [1:n;]
-    end
-
+    ruleevalorder = isempty(ruleevalorder) ? [1:n;] : copy(ruleevalorder)
     firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
 
     # create copies of vectors to be re-used
@@ -95,10 +92,7 @@ function insertheuristic(
     ruleevalorder::Vector{Int64}=[]
 )::Vector{Int64}
     (m, n) = size(ruleevaltimes)
-    if isempty(ruleevalorder)
-        ruleevalorder = [1:n;]
-    end
-
+    ruleevalorder = isempty(ruleevalorder) ? [1:n;] : copy(ruleevalorder)
     firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
 
     # create copies of vectors to be re-used
