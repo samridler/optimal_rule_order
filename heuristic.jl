@@ -37,9 +37,12 @@ end
 function swapheuristic(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix;
-    ruleevalorder::Vector{Int64}=[1:n;]
+    ruleevalorder::Vector{Int64}=[]
 )::Vector{Int64}
     (m, n) = size(ruleevaltimes)
+    if isempty(ruleevalorder)
+        ruleevalorder = [1:n;]
+    end
 
     firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
 
@@ -89,9 +92,12 @@ end
 function insertheuristic(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix;
-    ruleevalorder::Vector{Int64}=[1:n;]
+    ruleevalorder::Vector{Int64}=[]
 )::Vector{Int64}
     (m, n) = size(ruleevaltimes)
+    if isempty(ruleevalorder)
+        ruleevalorder = [1:n;]
+    end
 
     firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
 

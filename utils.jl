@@ -41,7 +41,7 @@ function calcfirstrulefailindex(
     ruleevalpass::BitMatrix,
     ruleevalorder::Vector{Int64}
 )::Vector{Int64}
-    (m, n) = size(ruleevaltimes)
+    (m, n) = size(ruleevalpass)
     # firstrulefailindex[i] gives index of first rule that fails in ruleevalorder,
     # index of n + 1 means that no rule fails
     firstrulefailindex = fill(n + 1, m)
