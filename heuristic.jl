@@ -1,9 +1,6 @@
 include("utils.jl")
 
 function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
-    # todo:
-    # - make recalculating of rule eval time more efficient
-
     (m, n) = size(ruleevaltimes)
     ruleevalorder = [1:n;]
     firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
@@ -52,12 +49,13 @@ function swapheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix):
 end
 
 function insertheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
-    # todo:
-    # - make recalculating of rule eval time more efficient
-
     (m, n) = size(ruleevaltimes)
     ruleevalorder = [1:n;]
-    ruleevaltime = calcruleevaltime(ruleevaltimes, ruleevalpass, ruleevalorder)
+    firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
+
+    # create copies of vectors to be re-used
+    ruleevalordertemp = copy(ruleevalorder)
+    firstrulefailindextemp = copy(firstrulefailindex)
 
     # perform re-insertion of a rule to a different index to decrease rule evaluation time
     ruleevaltimedecreased = true
@@ -69,23 +67,26 @@ function insertheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix
                 if k == l
                     continue
                 end
-                reinsert!(ruleevalorder, k, l)
+
+                copy!(ruleevalordertemp, ruleevalorder)
+                copy!(firstrulefailindextemp, firstrulefailindex)
+
+                reinsert!(ruleevalordertemp, k, l)
 
                 # calculate rule evaluation time unless rule eval order has been tried before
-                hashvalue = hash(ruleevalorder)
+                hashvalue = hash(ruleevalordertemp)
                 if hashvalue in ruleevalorderhashes
-                    ruleevaltimenew = Inf
+                    dt = Inf
                 else
-                    ruleevaltimenew = calcruleevaltime(ruleevaltimes, ruleevalpass, ruleevalorder)
+                    dt = calcdeltaruleevaltime_reinsertrule!(
+                        ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, k, l)
                     push!(ruleevalorderhashes, hashvalue)
                 end
 
-                if ruleevaltimenew < ruleevaltime
-                    ruleevaltime = ruleevaltimenew
+                if dt < 0
+                    copy!(ruleevalorder, ruleevalordertemp)
+                    copy!(firstrulefailindex, firstrulefailindextemp)
                     ruleevaltimedecreased = true
-                else
-                    # change rule eval order back
-                    reinsert!(ruleevalorder, l, k)
                 end
             end
         end

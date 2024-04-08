@@ -103,6 +103,60 @@ function calcdeltaruleevaltime_swaprules!(
     return dt
 end
 
+function calcdeltaruleevaltime_reinsertrule!(
+    ruleevaltimes::Matrix{Float64},
+    ruleevalpass::BitMatrix,
+    ruleevalorder::Vector{Int64},
+    firstrulefailindex::Vector{Int64},
+    k::Int64,
+    l::Int64
+)::Float64
+    # calculate change in rule evaluation time if rule at index k is reinserted to index l
+    # mutates: firstrulefailindex
+
+    dt = 0.0
+
+    if k == l
+        return dt
+    end
+
+    (m, n) = size(ruleevaltimes)
+    for i = 1:m
+        f = firstrulefailindex[i]
+        if min(k, l) <= f <= max(k, l) # otherwise reinserting rule k to index l will not change rule eval time for candidate i
+            kpass = ruleevalpass[i, ruleevalorder[k]]
+            if k < l
+                if kpass
+                    dt -= ruleevaltimes[i, ruleevalorder[k]]
+                    firstrulefailindex[i] -= 1
+                else
+                    # @assert(f == k)
+                    # need to find next rule index that fails after moving rule k
+                    f = findfirst(j -> !ruleevalpass[i, ruleevalorder[j]], k+1:l)
+                    f = firstrulefailindex[i] = isnothing(f) ? l + 1 : f + k
+                    if f == l + 1
+                        dt += sum(j -> ruleevaltimes[i, ruleevalorder[j]], k+1:l)
+                    else
+                        dt -= ruleevaltimes[i, ruleevalorder[k]]
+                        dt += sum(j -> ruleevaltimes[i, ruleevalorder[j]], k+1:f)
+                    end
+                    firstrulefailindex[i] = f - 1
+                end
+            else # k > l
+                dt += ruleevaltimes[i, ruleevalorder[k]]
+                if kpass
+                    firstrulefailindex[i] += 1
+                else
+                    dt -= sum(j -> ruleevaltimes[i, ruleevalorder[j]], l:f)
+                    firstrulefailindex[i] = l
+                end
+            end
+        end
+    end
+
+    return dt
+end
+
 function calcdeltaruleevaltime_removerule(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix,
