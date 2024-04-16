@@ -86,7 +86,7 @@ function swapheuristic(
     return ruleevalorder
 end
 
-function insertheuristic(
+function reinsertheuristic(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix;
     ruleevalorder::Vector{Int64}=[]
@@ -137,10 +137,10 @@ function insertheuristic(
     return ruleevalorder
 end
 
-function insertheuristic2(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
+function reinsertheuristic2(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
     # note:
     # This code runs quite slow, and I'm not sure if the algorithm is correct,
-    # may be more effective to improve the original insertheuristic method but
+    # may be more effective to improve the original reinsertheuristic method but
     # keep this anyway for reference.
 
     (m, n) = size(ruleevaltimes)

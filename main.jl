@@ -20,18 +20,14 @@ ruleevalpass = rand(m, n) .<= 0.9
 # - If a candidate passes all rules then it can be removed,
 #   as rule order will not affect rule eval time for the candidate.
 
-# enum of the different solution methods: 
-# - swap heuristic
-# - insert heuristic
-# - integer programming
-@enum SolutionMethod thumb swap insert ip
+@enum SolutionMethod thumb swap reinsert ip
 
 ruleevalorders = Dict{SolutionMethod,Vector{Int64}}()
 
 @time ruleevalorders[thumb] = ruleofthumb(ruleevaltimes, ruleevalpass)
 @time ruleevalorders[swap] = swapheuristic(ruleevaltimes, ruleevalpass)
-@time ruleevalorders[insert] = insertheuristic(ruleevaltimes, ruleevalpass)
-# @time ruleevalorders[insert] = insertheuristic2(ruleevaltimes, ruleevalpass)
+@time ruleevalorders[reinsert] = reinsertheuristic(ruleevaltimes, ruleevalpass)
+# @time ruleevalorders[reinsert] = insertheuristic2(ruleevaltimes, ruleevalpass)
 
 # GLPK seems faster than Cbc for this problem
 # optimizer = optimizer_with_attributes(Cbc.Optimizer, "logLevel" => 0)
