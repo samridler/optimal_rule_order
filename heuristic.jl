@@ -37,7 +37,7 @@ end
 function swapheuristic(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix;
-    ruleevalorder::Vector{Int64}=[]
+    ruleevalorder::Vector{Int64}=Int64[]
 )::Vector{Int64}
     (m, n) = size(ruleevaltimes)
     ruleevalorder = isempty(ruleevalorder) ? [1:n;] : copy(ruleevalorder)
@@ -89,7 +89,7 @@ end
 function reinsertheuristic(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix;
-    ruleevalorder::Vector{Int64}=[]
+    ruleevalorder::Vector{Int64}=Int64[]
 )::Vector{Int64}
     (m, n) = size(ruleevaltimes)
     ruleevalorder = isempty(ruleevalorder) ? [1:n;] : copy(ruleevalorder)
