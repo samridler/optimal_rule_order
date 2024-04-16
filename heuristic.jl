@@ -79,6 +79,27 @@ function insertheuristic(
     return ruleevalorder
 end
 
+function repeatedinsertheuristic(
+    ruleevaltimes::Matrix{Float64},
+    ruleevalpass::BitMatrix;
+    ruleinsertorder::Vector{Int64}=Int64[]
+)::Vector{Int64}
+    if isempty(ruleinsertorder)
+        n = size(ruleevaltimes, 2)
+        ruleinsertorder = [1:n;]
+    end
+
+    # repeat the insertheuristic until no change is made to rule order
+    ruleevalorder = insertheuristic(ruleevaltimes, ruleevalpass, ruleinsertorder=ruleinsertorder)
+    while true
+        ruleevalordernew = insertheuristic(ruleevaltimes, ruleevalpass, ruleinsertorder=ruleevalorder)
+        if ruleevalorder == ruleevalordernew
+            return ruleevalorder
+        end
+        ruleevalorder = ruleevalordernew
+    end
+end
+
 function swapheuristic(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix;
