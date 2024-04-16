@@ -57,23 +57,23 @@ function insertheuristic(
     # create copy of vector to be re-used
     firstrulefailindextemp = copy(firstrulefailindex)
 
-    for j = 2:n
+    for k = 2:n
         # put new rule last then try re-insert it in each other position
-        push!(ruleevalorder, ruleinsertorder[j])
+        push!(ruleevalorder, ruleinsertorder[k])
         firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
         bestdt = 0.0
-        bestindex = j
-        for k = 1:j-1
+        bestindex = k
+        for l = 1:k-1
             copy!(firstrulefailindextemp, firstrulefailindex)
             dt = calcdeltaruleevaltime_reinsertrule!(
-                ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, j, k)
+                ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, k, l)
             if dt < bestdt
                 bestdt = dt
-                bestindex = k
+                bestindex = l
             end
         end
 
-        reinsert!(ruleevalorder, j, bestindex)
+        reinsert!(ruleevalorder, k, bestindex)
     end
 
     return ruleevalorder
