@@ -4,7 +4,8 @@ function calcruleevaltime(
     ruleevalpass::BitMatrix,
     ruleevalorder::Vector{Int64}
 )::Float64
-    (m, n) = size(ruleevaltimes)
+    m = size(ruleevaltimes, 1)
+    n = length(ruleevalorder)
     time = 0.0
     for i = 1:m
         # add times until the first rule that fails (if any) for candidate i
@@ -41,7 +42,8 @@ function calcfirstrulefailindex(
     ruleevalpass::BitMatrix,
     ruleevalorder::Vector{Int64}
 )::Vector{Int64}
-    (m, n) = size(ruleevalpass)
+    m = size(ruleevalpass, 1)
+    n = length(ruleevalorder)
     # firstrulefailindex[i] gives index of first rule that fails in ruleevalorder,
     # index of n + 1 means that no rule fails
     firstrulefailindex = fill(n + 1, m)
@@ -76,7 +78,8 @@ function calcdeltaruleevaltime_swaprules!(
         return dt
     end
 
-    (m, n) = size(ruleevaltimes)
+    m = size(ruleevaltimes, 1)
+    n = length(ruleevalorder)
     for i = 1:m
         f = firstrulefailindex[i]
         if k <= f <= l # otherwise swapping k and l would not change rule eval time for candidate i
@@ -137,7 +140,8 @@ function calcdeltaruleevaltime_reinsertrule!(
         return dt
     end
 
-    (m, n) = size(ruleevaltimes)
+    m = size(ruleevaltimes, 1)
+    n = length(ruleevalorder)
     for i = 1:m
         f = firstrulefailindex[i]
         if min(k, l) <= f <= max(k, l) # otherwise reinserting rule k to index l will not change rule eval time for candidate i
@@ -188,7 +192,8 @@ function calcdeltaruleevaltime_removerule(
 
     # calculate change in rule eval time
     dt = 0.0
-    (m, n) = size(ruleevaltimes)
+    m = size(ruleevaltimes, 1)
+    n = length(ruleevalorder)
     for i = 1:m
         if firstrulefailindex[i] == removeruleindex
             # find next rule that fails
@@ -230,7 +235,8 @@ function calcdeltaruleevaltime_insertrule(
 
     # calculate change in rule eval time
     dt = 0.0
-    (m, n) = size(ruleevaltimes)
+    m = size(ruleevaltimes, 1)
+    n = length(ruleevalorder)
     for i = 1:m
         if firstrulefailindex[i] >= insertindex
             if ruleevalpass[i, ruleindex]

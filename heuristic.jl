@@ -34,6 +34,51 @@ function ruleofthumb(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::V
     return ruleevalorder
 end
 
+function insertheuristic(
+    ruleevaltimes::Matrix{Float64},
+    ruleevalpass::BitMatrix;
+    ruleinsertorder::Vector{Int64}=Int64[]
+)::Vector{Int64}
+    (m, n) = size(ruleevaltimes)
+    if isempty(ruleinsertorder)
+        ruleinsertorder = [1:n;]
+    end
+
+    # insert rules one at a time based on ruleinsertorder, greedily minimising rule evaluation time
+
+    ruleevalorder = []
+    if n == 0
+        return ruleevalorder
+    end
+
+    ruleevalorder = [ruleinsertorder[1]]
+    firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
+
+    # create copy of vector to be re-used
+    firstrulefailindextemp = copy(firstrulefailindex)
+
+    for j = 2:n
+        # put new rule last then try re-insert it in each other position
+        push!(ruleevalorder, ruleinsertorder[j])
+        firstrulefailindex = calcfirstrulefailindex(ruleevalpass, ruleevalorder)
+        bestdt = 0.0
+        bestindex = j
+        for k = 1:j-1
+            copy!(firstrulefailindextemp, firstrulefailindex)
+            dt = calcdeltaruleevaltime_reinsertrule!(
+                ruleevaltimes, ruleevalpass, ruleevalorder, firstrulefailindextemp, j, k)
+            if dt < bestdt
+                bestdt = dt
+                bestindex = k
+            end
+        end
+
+        reinsert!(ruleevalorder, j, bestindex)
+    end
+
+    return ruleevalorder
+end
+
 function swapheuristic(
     ruleevaltimes::Matrix{Float64},
     ruleevalpass::BitMatrix;
