@@ -244,3 +244,69 @@ function reinsertheuristic2(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMat
 
     return ruleevalorder
 end
+
+function estimatedremainingtimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
+    # Greedy heuristic that selects the rule with the lowest evaluation time plus
+    # estimated rule evaluation time of remaining candidates.
+
+    (m, n) = size(ruleevaltimes)
+    ruleevalorder = []
+
+    # calculate total rule evaluation time of remaining passing / failing rules, per candidate
+    passtimeremaining = sum(ruleevaltimes .* ruleevalpass, dims=2)[:]
+    failtimeremaining = sum(ruleevaltimes, dims=2)[:] .- passtimeremaining
+    passesremaining = sum(ruleevalpass, dims=2)[:]
+    failsremaining = n .- passesremaining
+
+    # calculate mean eval time of failing rules per candidate
+    meanfailtime = failtimeremaining ./ failsremaining
+    meanfailtime[failsremaining.==0] .= 0
+
+    # keep track of remaining candidates (rows) and rules (cols)
+    rows = ones(Bool, m)
+    cols = ones(Bool, n)
+
+    trueindexiterator = x -> (i for i in eachindex(x) if x[i])
+
+    for iter = 1:n
+        # find rule with lowest evaluation time plus estimated rule evaluation time of remaining candidates
+        bestt = Inf
+        bestindex = 0
+        for j in trueindexiterator(cols)
+
+            # total time to evaluate chosen rule for remaining candidates
+            t = sum(view(ruleevaltimes, rows, j))
+
+            # estimated rule eval time of remaining candidates
+            for i in trueindexiterator(rows)
+                if ruleevalpass[i, j]
+                    # add mean time of passing rule evals and mean time of one failing rule eval
+                    t += (passtimeremaining[i] - ruleevaltimes[i, j]) / (failsremaining[i] + 1)
+                    t += meanfailtime[i]
+                end
+            end
+
+            if t < bestt
+                bestt = t
+                bestindex = j
+            end
+        end
+
+        # remove the rule from consideration, and remove remaining candidates that fail that rule
+        j = bestindex
+        cols[j] = false
+        for i = 1:m
+            if ruleevalpass[i, j]
+                passtimeremaining[i] -= ruleevaltimes[i, j]
+            else
+                rows[i] = false
+            end
+        end
+
+        push!(ruleevalorder, j)
+    end
+
+    @assert(sort(ruleevalorder) == 1:n)
+
+    return ruleevalorder
+end
