@@ -245,9 +245,9 @@ function reinsertheuristic2(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMat
     return ruleevalorder
 end
 
-function estimatedremainingtimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
+function remainingmeantimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
     # Greedy heuristic that selects the rule with the lowest evaluation time plus
-    # estimated rule evaluation time of remaining candidates.
+    # mean rule evaluation time of remaining candidates when randomly ordered.
 
     (m, n) = size(ruleevaltimes)
     ruleevalorder = []
