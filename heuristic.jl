@@ -310,3 +310,64 @@ function remainingmeantimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass
 
     return ruleevalorder
 end
+
+function remainingruleofthumbtimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::Vector{Int64}
+    # Greedy heuristic that selects the rule with the lowest evaluation time plus
+    # remaining rule evaluation time based on rule of thumb heuristic.
+
+    (m, n) = size(ruleevaltimes)
+    ruleevalorder = []
+
+    # keep track of remaining candidates (rows) and rules (cols)
+    rows = ones(Bool, m)
+    cols = ones(Bool, n)
+
+    rowstemp = copy(rows)
+    colstemp = copy(cols)
+
+    trueindexiterator = x -> (i for i in eachindex(x) if x[i])
+
+    for iter = 1:n
+        bestt = Inf
+        bestindex = 0
+        for j in trueindexiterator(cols)
+            # total time to evaluate chosen rule for remaining candidates
+            t = sum(view(ruleevaltimes, rows, j))
+
+            copy!(rowstemp, rows)
+            copy!(colstemp, cols)
+            colstemp[j] = false
+            for i = 1:m
+                if !ruleevalpass[i, j]
+                    rowstemp[i] = false
+                end
+            end
+
+            # remaining rule eval time based on rule of thumb heuristic
+            ruleevaltimestemp = ruleevaltimes[rowstemp, colstemp]
+            ruleevalpasstemp = ruleevalpass[rowstemp, colstemp]
+            ruleevalordertemp = ruleofthumb(ruleevaltimestemp, ruleevalpasstemp)
+            t += calcruleevaltime(ruleevaltimestemp, ruleevalpasstemp, ruleevalordertemp)
+
+            if t < bestt
+                bestt = t
+                bestindex = j
+            end
+        end
+
+        # remove the rule from consideration, and remove remaining candidates that fail that rule
+        j = bestindex
+        cols[j] = false
+        for i = 1:m
+            if !ruleevalpass[i, j]
+                rows[i] = false
+            end
+        end
+
+        push!(ruleevalorder, j)
+    end
+
+    @assert(sort(ruleevalorder) == 1:n)
+
+    return ruleevalorder
+end
