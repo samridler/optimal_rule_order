@@ -30,7 +30,7 @@ ruleevalorders[none] = [1:n;]
 @time ruleevalorders[repeatinsert] = repeatedinsertheuristic(ruleevaltimes, ruleevalpass)
 @time ruleevalorders[swap] = swapheuristic(ruleevaltimes, ruleevalpass)
 @time ruleevalorders[reinsert] = reinsertheuristic(ruleevaltimes, ruleevalpass)
-@time ruleevalorders[meanremtime] = meanremainingtimeheuristic(ruleevaltimes, ruleevalpass)
+@time ruleevalorders[remmeantime] = remainingmeantimeheuristic(ruleevaltimes, ruleevalpass)
 
 # GLPK seems faster than Cbc for this problem
 # optimizer = optimizer_with_attributes(Cbc.Optimizer, "logLevel" => 0)
