@@ -23,13 +23,14 @@ function ruleofthumb(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::V
         push!(ruleevalorder, j)
         # remove the rule from consideration, and remove remaining candidates that fail that rule
         cols[j] = false
-        for (i, row) in enumerate(rows)
-            if row && ruleevalfails[i, j]
+        for i in trueindexgenerator(rows)
+            if ruleevalfails[i, j]
                 rows[i] = false
                 numrows -= 1
             end
         end
         if numrows == 0
+            @assert(!any(rows))
             # no candidates left, can apply remaining rules in any order
             for j in trueindexgenerator(cols)
                 push!(ruleevalorder, j)
@@ -303,7 +304,7 @@ function remainingmeantimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass
         # remove the rule from consideration, and remove remaining candidates that fail that rule
         j = bestindex
         cols[j] = false
-        for i = 1:m
+        for i in trueindexgenerator(rows)
             if ruleevalpass[i, j]
                 passtimeremaining[i] -= ruleevaltimes[i, j]
             else
@@ -315,6 +316,7 @@ function remainingmeantimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass
         push!(ruleevalorder, j)
 
         if numrows == 0
+            @assert(!any(rows))
             # no candidates left, can apply remaining rules in any order
             for j in trueindexgenerator(cols)
                 push!(ruleevalorder, j)
@@ -374,7 +376,7 @@ function remainingruleofthumbtimeheuristic(ruleevaltimes::Matrix{Float64}, rulee
         # remove the rule from consideration, and remove remaining candidates that fail that rule
         j = bestindex
         cols[j] = false
-        for i = 1:m
+        for i in trueindexgenerator(rows)
             if !ruleevalpass[i, j]
                 rows[i] = false
                 numrows -= 1
@@ -384,6 +386,7 @@ function remainingruleofthumbtimeheuristic(ruleevaltimes::Matrix{Float64}, rulee
         push!(ruleevalorder, j)
 
         if numrows == 0
+            @assert(!any(rows))
             # no candidates left, can apply remaining rules in any order
             for j in trueindexgenerator(cols)
                 push!(ruleevalorder, j)
