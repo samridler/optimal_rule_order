@@ -11,6 +11,7 @@ function ruleofthumb(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::V
 
     rows = ones(Bool, m)
     cols = ones(Bool, n)
+    numrows = m
 
     # find rule with highest ratio of fail rate to evaluation time
     for iter = 1:n
@@ -25,7 +26,15 @@ function ruleofthumb(ruleevaltimes::Matrix{Float64}, ruleevalpass::BitMatrix)::V
         for (i, row) in enumerate(rows)
             if row && ruleevalfails[i, j]
                 rows[i] = false
+                numrows -= 1
             end
+        end
+        if numrows == 0
+            # no candidates left, can apply remaining rules in any order
+            for j in trueindexgenerator(cols)
+                push!(ruleevalorder, j)
+            end
+            break
         end
     end
 
@@ -265,6 +274,7 @@ function remainingmeantimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass
     # keep track of remaining candidates (rows) and rules (cols)
     rows = ones(Bool, m)
     cols = ones(Bool, n)
+    numrows = m
 
     for iter = 1:n
         # find rule with lowest evaluation time plus estimated rule evaluation time of remaining candidates
@@ -298,10 +308,19 @@ function remainingmeantimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass
                 passtimeremaining[i] -= ruleevaltimes[i, j]
             else
                 rows[i] = false
+                numrows -= 1
             end
         end
 
         push!(ruleevalorder, j)
+
+        if numrows == 0
+            # no candidates left, can apply remaining rules in any order
+            for j in trueindexgenerator(cols)
+                push!(ruleevalorder, j)
+            end
+            break
+        end
     end
 
     @assert(sort(ruleevalorder) == 1:n)
@@ -319,6 +338,7 @@ function remainingruleofthumbtimeheuristic(ruleevaltimes::Matrix{Float64}, rulee
     # keep track of remaining candidates (rows) and rules (cols)
     rows = ones(Bool, m)
     cols = ones(Bool, n)
+    numrows = m
 
     rowstemp = copy(rows)
     colstemp = copy(cols)
@@ -357,10 +377,19 @@ function remainingruleofthumbtimeheuristic(ruleevaltimes::Matrix{Float64}, rulee
         for i = 1:m
             if !ruleevalpass[i, j]
                 rows[i] = false
+                numrows -= 1
             end
         end
 
         push!(ruleevalorder, j)
+
+        if numrows == 0
+            # no candidates left, can apply remaining rules in any order
+            for j in trueindexgenerator(cols)
+                push!(ruleevalorder, j)
+            end
+            break
+        end
     end
 
     @assert(sort(ruleevalorder) == 1:n)
