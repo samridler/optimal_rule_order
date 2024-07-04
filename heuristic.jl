@@ -266,19 +266,17 @@ function remainingmeantimeheuristic(ruleevaltimes::Matrix{Float64}, ruleevalpass
     rows = ones(Bool, m)
     cols = ones(Bool, n)
 
-    trueindexiterator = x -> (i for i in eachindex(x) if x[i])
-
     for iter = 1:n
         # find rule with lowest evaluation time plus estimated rule evaluation time of remaining candidates
         bestt = Inf
         bestindex = 0
-        for j in trueindexiterator(cols)
+        for j in trueindexgenerator(cols)
 
             # total time to evaluate chosen rule for remaining candidates
             t = sum(view(ruleevaltimes, rows, j))
 
             # estimated rule eval time of remaining candidates
-            for i in trueindexiterator(rows)
+            for i in trueindexgenerator(rows)
                 if ruleevalpass[i, j]
                     # add mean time of passing rule evals and mean time of one failing rule eval
                     t += (passtimeremaining[i] - ruleevaltimes[i, j]) / (failsremaining[i] + 1)
@@ -325,12 +323,10 @@ function remainingruleofthumbtimeheuristic(ruleevaltimes::Matrix{Float64}, rulee
     rowstemp = copy(rows)
     colstemp = copy(cols)
 
-    trueindexiterator = x -> (i for i in eachindex(x) if x[i])
-
     for iter = 1:n
         bestt = Inf
         bestindex = 0
-        for j in trueindexiterator(cols)
+        for j in trueindexgenerator(cols)
             # total time to evaluate chosen rule for remaining candidates
             t = sum(view(ruleevaltimes, rows, j))
 

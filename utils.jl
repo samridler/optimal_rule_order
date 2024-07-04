@@ -1,3 +1,8 @@
+# returns generator of indices in x that are true
+function trueindexgenerator(x::Vector{Bool})
+    return (i for i in eachindex(x) if x[i])
+end
+
 # calculate total rule evaluation time for a given rule evaluation order
 function calcruleevaltime(
     ruleevaltimes::Matrix{Float64},
